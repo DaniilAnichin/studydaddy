@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect, url_for
 from flask_nav.elements import Navbar, View
 
 from .admin_views import SUCCESS
@@ -56,6 +56,12 @@ def get_item(item_id):
     content_type = type(content)
     template = TEMPLATES[content_type]
     form = FORMS[content_type](request.form, answer=item.answer)
+    if request.method == 'POST':
+        answer = item.answer or Answer(item=item)
+        answer.answer = form.get_answer()
+        db.session.add(answer)
+        db.session.commit()
+        return redirect(url_for('get_item', item_id=item.next_item_id))
 
     return render_template(
         template,

@@ -34,7 +34,7 @@ class CorrectWTFormsRenderer(WTFormsRenderer):
     def _wrapped_input(self, node, type='text', classes=['form-control'], **kwargs):
         wrap = self._get_wrap(node)
         wrap.add(tags.label(node.label.text, _for=node.id))
-        wrap.add(tags.input(type=type, _class=' '.join(classes), name=node.name, **kwargs))  # Added name=node.name
+        wrap.add(tags.input(type=type, _class=' '.join(classes), name=node.name, value=node.data, **kwargs))  # Added name=node.name
         return wrap
 
     def visit_BooleanField(self, node):
