@@ -3,6 +3,7 @@ from .setup import db
 
 __all__ = (
     'Item',
+    'Answer',
     'Data',
     'OpenTest',
     'SimpleTest',
@@ -103,3 +104,14 @@ class OpenTest(db.Model):
 
     def get_correct(self):
         return self.correct.split(SEPARATOR)
+
+
+class Answer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False, unique=True)
+    item = db.relationship('Item', backref=db.backref('answer', uselist=False))
+    # user_id = ...
+    # user = ...
+
+    answer = db.Column(db.Text(), nullable=False)

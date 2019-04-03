@@ -7,7 +7,6 @@ from .admin_views import SUCCESS
 from .forms import *
 from .setup import app, db, nav, admin
 from .models import *
-from .tables import *
 
 studydaddy = Blueprint('studydaddy', __name__)
 
@@ -15,12 +14,23 @@ nav.register_element(
     'frontend_top',
     Navbar(
         View('StudyDaddy', '.index'),
-        View('Оцінки', '.mark_names'),
-        View('Спеціальності', '.cafedras'),
-        View('Покарання', '.violations'),
-        View('Накази', '.orders'),
+        View('Старт', '.index'),
+        View('Оцінки', '.marks'),
     )
 )
+
+TEMPLATES = {
+    Data: 'data.html',
+    OpenTest: 'open_test.html',
+    SimpleTest: 'simple_test.html',
+    ComplexTest: 'complex_test.html',
+}
+FORMS = {
+    Data: DataForm,
+    OpenTest: OpenTestForm,
+    SimpleTest: SimpleTestForm,
+    ComplexTest: ComplexTestForm,
+}
 
 
 @app.route('/')
@@ -29,38 +39,30 @@ def index():
     return redirect(f'/item/{root_item.id}/')
 
 
-def render_item_template(item: Item):
-    if not item.content:
-        raise ValueError
-
-    content = item.content
-    content_type = type(content)
-    template = {
-        Data: 'data.html',
-        OpenTest: 'open_test.html',
-        SimpleTest: 'simple_test.html',
-        ComplexTest: 'complex_test.html',
-    }[content_type]
-    form = {
-        Data: DataForm,
-        OpenTest: OpenTestForm,
-        SimpleTest: SimpleTestForm,
-        ComplexTest: ComplexTestForm,
-    }[content_type](request.form)
-
-    return render_template(
-        template,
-        item=item,
-        content=content,
-        topic=content.topic,
-        form=form,
-    )
+@app.route('/marks/')
+def marks():
+    finish_item = Item.query.filter_by(next_item_id=None).first()
+    return redirect(f'/item/{finish_item.id}/')
 
 
 @app.route('/item/<item_id>/', methods=['GET', 'POST'])
 def get_item(item_id):
     item = Item.query.filter_by(id=item_id).first()
-    return render_item_template(item)
+
+    content = item.content
+    if not content:
+        raise ValueError
+
+    content_type = type(content)
+    template = TEMPLATES[content_type]
+    form = FORMS[content_type](request.form, answer=item.answer)
+
+    return render_template(
+        template,
+        item=item,
+        content=content,
+        form=form,
+    )
 
 
 @app.route('/mark-names/', methods=['GET', 'POST'])
