@@ -133,12 +133,12 @@ class OpenTest(db.Model):
 
     @cached_property
     def get_correct(self):
-        return set(self.correct.split(SEPARATOR))
+        return set(self.correct.lower().split(SEPARATOR))
 
     def get_mark(self) -> float:
         if not self.item.answer:
             return 0
-        options = set(self.item.answer.answer.split(SEPARATOR))
+        options = set(self.item.answer.answer.lower().split())
         if options == self.get_correct:
             return 1
         elif options & self.get_correct:
