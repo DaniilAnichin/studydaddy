@@ -2,12 +2,13 @@
 {% import "bootstrap/utils.html" as util %}
 {%- extends "base.html" %}
 
-
 {% block content %}
   {{ util.flashed_messages(dismissible=True) }}
   <div class="container">
     <div class="jumbotron">
       <h1>{{ content.topic }}</h1>
+      <br>
+      <h4>(Осталось {{ (time_left.total_seconds() // 60) | int }} минут)</h4>
     </div>
     <div class="col-md-12" style="font-size: 20px; padding-bottom: 100px;">
       <div class="row" style="padding-bottom: 20px;">
@@ -18,13 +19,13 @@
       <div class="col-md-6 left">
         {% if item.prev_item %}
           <a role="button" class="btn btn-primary btn-lg"
-             href="{{ url_for('get_item', item_id=item.prev_item.id) }}">Попередній</a>
+             href="{{ url_for('get_item', item_id=item.prev_item.id) }}">Предыдущий</a>
         {% endif %}
       </div>
       <div class="col-md-6 right">
         {% if item.next_item %}
           <a role="button" class="btn btn-primary btn-lg" style="float: right"
-             href="{{ url_for('get_item', item_id=item.next_item.id) }}">Наступний</a>
+             href="{{ url_for('get_item', item_id=item.next_item.id) }}">Следующий</a>
         {% endif %}
       </div>
     </div>

@@ -48,8 +48,8 @@ class BaseTestFormMixing:
 
 
 class OpenTestForm(BaseTestFormMixing, Form):
-    answer = fields.TextAreaField(label='Відповідь: ')
-    confirm = fields.SubmitField(label='Зберігти')
+    answer = fields.TextAreaField(label='Ответ: ')
+    confirm = fields.SubmitField(label='Сохранить')
 
     def from_item(self, item):
         pass
@@ -62,8 +62,8 @@ class OpenTestForm(BaseTestFormMixing, Form):
 
 
 class SimpleTestForm(BaseTestFormMixing, Form):
-    answers = fields.RadioField(label='Відповідь (оберіть одну): ')
-    confirm = fields.SubmitField(label='Зберігти')
+    answers = fields.RadioField(label='Ответ: ')
+    confirm = fields.SubmitField(label='Сохранить')
 
     def from_item(self, item):
         self.answers.choices = item.content.get_options
@@ -88,8 +88,8 @@ class MultiCheckboxField(fields.SelectMultipleField):
 
 
 class ComplexTestForm(BaseTestFormMixing, Form):
-    answers = MultiCheckboxField(label='Відповіді (оберіть декілька): ')
-    confirm = fields.SubmitField(label='Зберігти')
+    answers = MultiCheckboxField(label='Ответы (выберите несколько): ')
+    confirm = fields.SubmitField(label='Сохранить')
 
     def from_item(self, item):
         self.answers.choices = item.content.get_options

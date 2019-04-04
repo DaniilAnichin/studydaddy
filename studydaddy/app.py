@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_nav.elements import Navbar, View
 
 from .admin_views import SUCCESS
@@ -15,8 +15,9 @@ nav.register_element(
     Navbar(
         View('StudyDaddy', '.index'),
         View('Старт', '.index'),
-        View('Тести', '.tests'),
-        View('Оцінки', '.marks'),
+        View('Тесты', '.tests'),
+        View('Оценки', '.marks'),
+
     )
 )
 
@@ -34,14 +35,21 @@ FORMS = {
 }
 
 
+times = []
+
+
 @app.route('/')
 def index():
+    if not times:
+        times.append(datetime.now())
     root_item = Item.query.filter_by(root=True).first()
     return redirect(url_for('get_item', item_id=root_item.id))
 
 
 @app.route('/item/<item_id>/', methods=['GET', 'POST'])
 def get_item(item_id):
+    if not times:
+        times.append(datetime.now())
     item = Item.query.filter_by(id=item_id).first()
 
     if item.item_type == 'marks':
@@ -60,6 +68,9 @@ def get_item(item_id):
             content=content,
             form=form,
         )
+    time_left = (times[0] + timedelta(minutes=20)) - datetime.now()
+    if time_left > timedelta(seconds=0):
+        redirect(url_for('timeout'))
 
     content = item.content
     if not content:
@@ -80,6 +91,7 @@ def get_item(item_id):
         item=item,
         content=content,
         form=form,
+        time_left=time_left,
     )
 
 
@@ -91,6 +103,13 @@ def tests():
 
 @app.route('/marks/')
 def marks():
+    finish_item = Item.query.filter_by(item_type='marks').first()
+    return redirect(url_for('get_item', item_id=finish_item.id))
+
+
+@app.route('/timeout/')
+def timeout():
+    flash(f'Ваше время истекло!')
     finish_item = Item.query.filter_by(item_type='marks').first()
     return redirect(url_for('get_item', item_id=finish_item.id))
 

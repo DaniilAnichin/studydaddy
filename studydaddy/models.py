@@ -65,6 +65,8 @@ class SimpleTest(db.Model):
     options = db.Column(db.Text(), nullable=False)
     correct = db.Column(db.Text(), nullable=False)
 
+    translate = 'Тест первого уровня'
+
     def __repr__(self):
         return f'SimpleTest "{self.topic}"'
 
@@ -87,6 +89,8 @@ class ComplexTest(db.Model):
     options = db.Column(db.Text(), nullable=False)
     correct = db.Column(db.Text(), nullable=False)
 
+    translate = 'Тест второго уровня'
+
     def __repr__(self):
         return f'ComplexTest "{self.topic}"'
 
@@ -108,6 +112,8 @@ class OpenTest(db.Model):
     topic = db.Column(db.String(250), nullable=False)
     correct = db.Column(db.Text(), nullable=False)
 
+    translate = 'Открытый вопрос'
+
     def __repr__(self):
         return f'OpenTest "{self.topic}"'
 
@@ -127,4 +133,9 @@ class Answer(db.Model):
 
 
 def get_marks():
-    return 'Nothing here('
+    res = []
+    open_tests = OpenTest.query
+    simple_tests = SimpleTest.query
+    complex_tests = ComplexTest.query
+
+    return '<br>'.join(res)
