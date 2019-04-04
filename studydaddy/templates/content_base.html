@@ -7,8 +7,10 @@
   <div class="container">
     <div class="jumbotron">
       <h1>{{ content.topic }}</h1>
-      <br>
-      <h4>(Осталось {{ (time_left.total_seconds() // 60) | int }} минут)</h4>
+      {% if time_left %}
+        <br>
+        <h4>(Осталось {{ (time_left.total_seconds() // 60) | int }} минут)</h4>
+      {% endif %}
     </div>
     <div class="col-md-12" style="font-size: 20px; padding-bottom: 100px;">
       <div class="row" style="padding-bottom: 20px;">

@@ -78,6 +78,9 @@ class SimpleTest(db.Model):
     def get_correct(self):
         return self.correct.split(SEPARATOR)[0]
 
+    def get_mark(self) -> float:
+        return float(bool(self.item.answer and self.item.answer.answer == self.correct))
+
 
 class ComplexTest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -100,7 +103,18 @@ class ComplexTest(db.Model):
 
     @cached_property
     def get_correct(self):
-        return self.correct.split(SEPARATOR)
+        return set(self.correct.split(SEPARATOR))
+
+    def get_mark(self) -> float:
+        if not self.item.answer:
+            return 0
+
+        options = set(self.item.answer.answer.split(SEPARATOR))
+        if options == self.get_correct:
+            return 1
+        elif options & self.get_correct:
+            return len(options & self.get_correct) / len(self.get_correct)
+        return 0
 
 
 class OpenTest(db.Model):
@@ -117,8 +131,19 @@ class OpenTest(db.Model):
     def __repr__(self):
         return f'OpenTest "{self.topic}"'
 
+    @cached_property
     def get_correct(self):
-        return self.correct.split(SEPARATOR)
+        return set(self.correct.split(SEPARATOR))
+
+    def get_mark(self) -> float:
+        if not self.item.answer:
+            return 0
+        options = set(self.item.answer.answer.split(SEPARATOR))
+        if options == self.get_correct:
+            return 1
+        elif options & self.get_correct:
+            return len(options & self.get_correct) / len(self.get_correct)
+        return 0
 
 
 class Answer(db.Model):
@@ -133,9 +158,51 @@ class Answer(db.Model):
 
 
 def get_marks():
-    res = []
-    open_tests = OpenTest.query
+    results = []
+    points = 0
+    total = 0
+    open_tests_1 = OpenTest.query.filter(OpenTest.id.in_(range(1, 20)))
+    open_tests_2 = OpenTest.query.filter(OpenTest.id.in_(range(20, 38)))
     simple_tests = SimpleTest.query
     complex_tests = ComplexTest.query
+    for test in open_tests_1:
+        mul = 5
+        mark = int(test.get_mark() * mul)
+        points += mark
+        total += mul
+        results.append(
+            f'{test.translate} первого уровня ({test.topic[:30]}...): {mark} / {mul}'
+        )
+    results.append('')
+    for test in open_tests_2:
+        mul = 10
+        mark = int(test.get_mark() * mul)
+        points += mark
+        total += mul
+        results.append(
+            f'{test.translate} второго уровня ({test.topic[:30]}...): {mark} / {mul}'
+        )
+    results.append('')
+    for test in simple_tests:
+        mul = 5
+        mark = int(test.get_mark() * mul)
+        points += mark
+        total += mul
+        results.append(
+            f'{test.translate} ({test.topic[:30]}...): {mark} / {mul}'
+        )
+    results.append('')
+    for test in complex_tests:
+        mul = 10
+        mark = int(test.get_mark() * mul)
+        points += mark
+        total += mul
+        results.append(
+            f'{test.translate} ({test.topic[:30]}...): {mark} / {mul}'
+        )
 
-    return '<br>'.join(res)
+    results.append(
+        f'Всего: {points} / {total} ({int(points * 100 / total)}%)'
+    )
+
+    return '<br>'.join(results)
