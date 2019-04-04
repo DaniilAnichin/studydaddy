@@ -1,6 +1,9 @@
+from random import shuffle
+
 from flask_wtf import Form, form
-from wtforms import fields
-from werkzeug.datastructures import OrderedMultiDict
+from wtforms import fields, widgets
+from studydaddy.models import SEPARATOR
+
 
 __all__ = (
     'DataForm',
@@ -16,11 +19,9 @@ class DataForm(Form):
 
 class BaseTestFormMixing:
     def __init__(self, formdata=form._Auto, obj=None, prefix='', csrf_context=None,
-                 secret_key=None, csrf_enabled=None, answer=None, *args, **kwargs):
-        if answer and isinstance(formdata, dict) and not formdata:
-            formdata = OrderedMultiDict(formdata)
-            formdata.update(self.from_answer(answer))
-        print(formdata)
+                 secret_key=None, csrf_enabled=None, item=None, answer=None, *args, **kwargs):
+        self._item = item
+        self._answer = answer
         super().__init__(
             formdata=formdata,
             obj=obj,
@@ -31,6 +32,13 @@ class BaseTestFormMixing:
             *args,
             **kwargs,
         )
+        if item:
+            self.from_item(item)
+        if answer and isinstance(formdata, dict) and not formdata:
+            self.from_answer(answer)
+
+    def from_item(self, item):
+        raise NotImplementedError
 
     def from_answer(self, answer):
         raise NotImplementedError
@@ -43,31 +51,55 @@ class OpenTestForm(BaseTestFormMixing, Form):
     answer = fields.TextAreaField(label='Відповідь: ')
     confirm = fields.SubmitField(label='Зберігти')
 
+    def from_item(self, item):
+        pass
+
     def from_answer(self, answer):
-        return {'answer': answer.answer}
+        self.answer.data = answer.answer
 
     def get_answer(self):
         return self.answer.data
 
 
 class SimpleTestForm(BaseTestFormMixing, Form):
-    answer = fields.TextAreaField(label='Відповідь: ')
+    answers = fields.RadioField(label='Відповідь (оберіть одну): ')
     confirm = fields.SubmitField(label='Зберігти')
 
+    def from_item(self, item):
+        self.answers.choices = item.content.get_options
+        shuffle(self.answers.choices)
+
     def from_answer(self, answer):
-        raise NotImplementedError
+        for i, title in self._item.content.get_options:
+            if answer.answer == title:
+                self.answers.data = str(i)
+                self.answers.raw_data = [str(i)]
+                return
 
     def get_answer(self):
-        raise NotImplementedError
+        for i, title, selected in self.answers.iter_choices():
+            if selected:
+                return title
+
+
+class MultiCheckboxField(fields.SelectMultipleField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
 
 
 class ComplexTestForm(BaseTestFormMixing, Form):
-    answer = fields.TextAreaField(label='Відповідь: ')
+    answers = MultiCheckboxField(label='Відповіді (оберіть декілька): ')
     confirm = fields.SubmitField(label='Зберігти')
 
+    def from_item(self, item):
+        self.answers.choices = item.content.get_options
+        shuffle(self.answers.choices)
+
     def from_answer(self, answer):
-        raise NotImplementedError
+        results = [str(i) for i, title in self._item.content.get_options if title in answer.answer.split(SEPARATOR)]
+        self.answers.data = results
+        self.answers.raw_data = results
 
     def get_answer(self):
-        raise NotImplementedError
-
+        results = [title for i, title, selected in self.answers.iter_choices() if selected]
+        return SEPARATOR.join(results)

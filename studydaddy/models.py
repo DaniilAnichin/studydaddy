@@ -1,3 +1,5 @@
+from werkzeug.utils import cached_property
+
 from .setup import db
 
 
@@ -8,6 +10,9 @@ __all__ = (
     'OpenTest',
     'SimpleTest',
     'ComplexTest',
+
+    'SEPARATOR',
+    'get_marks',
 )
 
 
@@ -63,9 +68,11 @@ class SimpleTest(db.Model):
     def __repr__(self):
         return f'SimpleTest "{self.topic}"'
 
+    @cached_property
     def get_options(self):
-        return self.options.split(SEPARATOR)
+        return list(enumerate(self.options.split(SEPARATOR)))
 
+    @cached_property
     def get_correct(self):
         return self.correct.split(SEPARATOR)[0]
 
@@ -83,9 +90,11 @@ class ComplexTest(db.Model):
     def __repr__(self):
         return f'ComplexTest "{self.topic}"'
 
+    @cached_property
     def get_options(self):
-        return self.options.split(SEPARATOR)
+        return list(enumerate(self.options.split(SEPARATOR)))
 
+    @cached_property
     def get_correct(self):
         return self.correct.split(SEPARATOR)
 
@@ -115,3 +124,7 @@ class Answer(db.Model):
     # user = ...
 
     answer = db.Column(db.Text(), nullable=False)
+
+
+def get_marks():
+    return 'Nothing here('
