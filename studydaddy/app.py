@@ -69,8 +69,8 @@ def get_item(item_id):
             form=form,
         )
     time_left = (times[0] + timedelta(minutes=20)) - datetime.now()
-    if time_left > timedelta(seconds=0):
-        redirect(url_for('timeout'))
+    if time_left.total_seconds() < 0:
+        return redirect(url_for('timeout'))
 
     content = item.content
     if not content:
